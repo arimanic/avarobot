@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="ISO-8859-1">
+        <link rel="stylesheet" href="main.css">
+
+        <title>AVA Robot</title>
+    </head>
+    <body>
+        <div style="text-align: center">
+            <h1 id="top">AVA</h1>
+            <p>Created by Artem Cherniata, Andrew Rimanic, and Vitor Tiepo</p>
+            <img src="Images/News%20Image.jpg">
+            <!img
+            src="https://scontent-sea1-1.xx.fbcdn.net/v/t34.0-12/20793307_1368043216647998_323007046_n.jpg?oh=d25692f4e88264dc02bb39f874d5ab23&oe=5995EEC3"
+            height=500>
+
+            <p></p>
+        </div>
+
+        <div style="text-align: center">
+            <h2>Table of Contents</h2>
+            <table style="text-align: center" border="1">
+                <tr>
+                    <td><a href="#videos"> Video</a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Competition"> Competition</a></td>
+                </tr>
+                
+                <tr>
+                    <td><a href="#Electrical"> Electrical Design</a></td>
+                </tr>
+                <tr>
+                    <td><a href="#Software"> Software Design</a></td>
+                </tr>
+            </table>
+            <p></p>
+        </div>
+
+        <div id="videos" style="text-align: center">
+            <!video width="640" height="520" autoplay controls muted>
+                <source src="Videos/IMG_6326.MOV" type="video/mp4">
+            <!/video>
+            <iframe class="youtube-player" width="640" height="385"
+            src="https://www.youtube.com/embed/xx03ZnMOdwo?html5=1&autoplay=1&mute=1">
+            </iframe>
+        </div>
+
+
+        <div>
+            <h2 id="Competition">Competition</h2>
+            <p>
+            	The competition consists of designing a robot that autonomously completes the tasks outlined by the Engineering Physics administration. These tasks include following the electrical tape over a two-floor surface that differs in height by 6 inches, transitioned with a ramp. Furthermore, the robot will be expected to be able to detect infrared signals of a frequency close to 10 KHz. 
+	The robot will be constrained in size with a rigid gate, not allowing the structure to be bigger than 12 inches in width or height.
+	On the first level, after passing the rigid gate, the robot is expected to pass a gate that is either open or closed, depending on an infrared signal behind the gate.
+The ultimate goal is to rescue plush toys that will be sitting on platforms attached to the sides of a plastic tub that measures 550mm in diameter and 180mm in depth, located on the top level of the competition surface. These platforms will be at different depths that vary in a range of 50mm from the top of the tub edge. After one minute has elapsed since the start of the timed run, the toy platforms will start dropping, actuated with a servo motor mechanism. Since the tub will be full of water, the robot will need to be prepared to fish the toys off the bottom of the tub if they are dropped.
+After supposedly rescuing the toys, the robot is required to send them down a zipline that will have an infrared beacon attached to it for location purposes.
+
+            </p>
+
+            <ul>
+                <li><a href="#top"> Link to top</a></li>
+            </ul>
+            
+            
+        </div>
+
+        <div>
+            <h2 id="Electrical">Electrical Design</h2>
+            <ul>
+                <li><a href="#Circuit Introduction">Introduction</a></li><br>
+                <li><a href="#Hbridge">H-Bridges</a></li><br>
+                <li><a href="#IRcircuit">Infrared Circuit</a></li><br>
+                <li><a href="#top"> Link to top</a></li>
+            </ul>
+
+            <h4 id="Circuit Introduction">Circuit Introduction</h4>
+            <p>
+                When constructing AVA, our team built all the circuitry from scratch, using simple components like resistors, capacitors and Op Amp chips. These circuits were planned and built on breadboards, soldered into PCB boards, and mounted on the robot.
+            </p>
+
+            <h4 id="HBridge">H-Bridges</h4>
+            <p>
+                To power our motors directly from the lithium polymer battery(15V) while still using the PWM output of our processing board, our team had to construct an H-Bridge circuit for every DC motor! These circuits powered the motors for our arm and wheels. At first, we tried building them out of MOSFET and BJT transistors, following this diagram: 
+            </p>
+            <figure>
+            <img src="Images/BJTHbridge.png">
+                <figcaption>BJT H-bridge schematic</figcaption>
+                </figure>
+            <p>
+                After having trouble with the maintenance of this circuit and blowing our main fuse several times, we decided to change the design to a Zener diode H-Bridge, created by an upper year Engineering Physics student at UBC. This design is much easier to debug due to the reduced amount of transistor chips and smaller number of components in general! We then decided to use this model to power all four DC motors in our robot, having no further issue with the H-Bridges.
+            </p>
+
+            <figure>
+                <img src="Images/ZenerHbridge.png">
+                <figcaption>Zener diode H bridge schematic</figcaption>
+            </figure>
+            <figure>
+                <img src="Images/ZenerPCB.jpg" height="400">
+                <figcaption>Completed Zener diode H-bridge</figcaption>
+            </figure>
+
+            <h4 id="IRcircuit">The Infrared Detection Circuit</h4>
+            <p>
+                One of the tasks our robot had to do was to detect an infrared light signal blinking at 10kHz, an ‘alarm’ at the competition that signaled if the robot could cross a gate. We had to somehow turn this light signal into a static DC voltage that our processing board could read with an analog input. To tackle this challenge, we built a circuit to filter, amplify, and peak detect these signal waves. Three of these circuits would have to be built, as we mounted three QSD sensors at the front of our robot. 
+            </p>
+
+            <figure>
+                <img src="Images/IRmount.jpg">
+                <figcaption>Infrared Mount</figcaption>
+            </figure>
+
+            <p>
+                The first part of this circuit was to pick up the infrared signal. For this, we used a QSD 124 phototransistor pulled up to 5V with a resistor. The voltage signal we got out of this setup was a sinusoid, with a DC offset of 5V. A DC offset made the signal hard to work with, so we introduced a DC block, to only let through the wave response:
+            </p>
+            <figure>
+                <img src="Images/DCblock.jpg" height="150">
+                <figcaption>DC Block</figcaption>
+            </figure>
+            <p>
+                We then had to filter out the frequency desired (10kHz). This was done using a series of passive low-pass and high-pass filters, combined with active bandpass filters, all tuned to filter out undesired frequencies. The passive high-pass filter is just like a DC block, and the low-pass filter is the same diagram with the positions of the capacitor and resistor being inverted. After every low-pass filter, the wave signal dropped in its peak-to-peak voltage, forcing us to introduce amplification together with our active bandpass filter. 
+            </p>
+            <figure>
+                <img src="Images/BandPassSchem.jpg" height="250">
+                <figcaption>Active bandpass filter</figcaption>
+            </figure>
+            
+            <p>
+            Now had a circuit that produces a high-amplitude sinusoidal voltage signal when the phototransistor was exposed to a 10kHz signal, and a low-amplitude signal when it was exposed to the undesired frequency of 1kHz. The last step was to turn this signal into a DC voltage that our analog inputs could read. For this, we built a simple peak detecting circuit, that is a diode, followed by a resistor and a capacitor pulling the signal down to GND. The RC time constant of this capacitor-resistor circuit determined how fast our output would respond to a change in wave amplitude. We integrated these components into PCB boards, with voltage follower Op Amp circuits after the signal to avoid any feedback from the analog inputs of our processing board. 
+            </p>
+            
+            <figure>
+            <img src="Images/IRtesting.jpg" height="600">
+                <figcaption>Testing and tweaking stages of the infrared detection circuit</figcaption>
+            </figure>
+        </div>
+
+        <div>
+            <h2 id="Software">Software Design</h2>
+            <ul>
+                <li><a href="#Hardware">Hardware</a></li><br>
+                <li><a href="#Structure">Structure</a></li><br>
+                <li><a href="#Driving">Driving Algorithm</a></li><br>
+                <li><a href="#Arm"> Arm Control</a></li><br>
+                <li><a href="#Infrared"> Infrared Detection</a></li><br>
+                <li><a href="#Menu">Menu</a></li><br>
+                <li><a href="#Modes">Alternate Modes</a></li><br>
+                <li><a href="#top"> Link to top</a></li>
+            </ul>
+
+            <h4 id="Hardware">Hardware</h4>
+            <p> 
+                AVA is controlled by a TINAH microcontroller, a modified ATmega128 outfitted with an LCD screen, two banks of 8 digital IO pins, one bank of 8 analog IO pins, 3 servo outputs, and 4 PWM motor DC motor outputs. For this project TINAH was programmed in C++ through a combination of the Arduino IDE and Visual Studio 2017
+            </p>
+
+            <h4 id="Structure">Structure</h4>
+            <p> 
+                The robot is powered by a control loop that runs indefinitely.     All functions within the loop are designed in a manner that allows them to run simultaneously, but requires them to be called repeatedly to work properly. When combined with boolean checks and flags, this design allows use to control every single aspect of the robot simultaneously without having to wait for certain processes to complete before beginning the next.  The best example of this is our robot's ability to move both joints of the arm while driving at full speed with no preformance drawbacks to any of these actions.
+            </p>
+
+            <h4 id="Driving">Driving Algorithm</h4>
+            <p>                
+                Our robot uses 4 QRD reflective sensors installed in a line perpendicular to the direction of travel for directional control inputs.  A reading of 0 indicates that the sensor is over a white surface and a reading of 1 indicates that the sensor is over the black electrical tape. The 4 QRDs will be referred to as a 4 digit binary number from now on. For example, 0011 would indicate that the two right sensors are on the tape and thus the robot must turn towards the right to achieve the ideal state 0110 where the robot is completely centered on the tape.<br><br>
+
+                The sensors are spaced in such that "split" states are impossible. The distance between two adjacent sensors is slightly less than the width of the electrical tape to be followed, so a reading of 0101 can never occur naturally. The code ignores all of these invalid split states to reduce the likelihood of electrical noise affecting the steering.<br><br>
+
+                All other non-split states are valid states that can be uniquely represented by a binary number. Repeatedly checking all 4 sensor values for equality when determining which state the robot is in would be incredibly inefficient. We take advantage of the uniqueness of each state and represent it as an integer between 0 and 15 that corresponds to a binary sensor reading, dramatically increasing the speed of the code. This is a very important optimization that allows our robot to move faster than any other in the competition without losing control.
+            </p>
+
+            <table style="width:auto" border="1" >
+                <tr>
+                    <td colspan="3"><b>Examples of QRD states</b></td>
+                </tr>
+                <tr>
+                    <td>Sensor Reading</td>
+                    <td>Number Code</td>
+                    <td>State</td>
+                </tr>
+
+                <tr>
+                    <td>0011</td>
+                    <td>3</td>
+                    <td>Medium right turn</td>
+                </tr>
+                <tr>
+                    <td>0100</td>
+                    <td>4</td>
+                    <td>Small left turn</td>
+                </tr>
+                <tr>
+                    <td>0110</td>
+                    <td>6</td>
+                    <td>Straight</td>
+                </tr>
+                <tr>
+                    <td>0111</td>
+                    <td>7</td>
+                    <td>Cross Detected</td>
+                </tr>
+                <tr>
+                    <td>1011</td>
+                    <td>11</td>
+                    <td>Invalid</td>
+                </tr>
+                <tr>
+                    <td>1110</td>
+                    <td>14</td>
+                    <td>Cross Detected</td>
+                </tr>               
+                <tr>
+                    <td>1111</td>
+                    <td>15</td>
+                    <td>Cross Detected</td>
+                </tr>
+
+            </table>
+
+
+
+            <p>
+                Speed is controlled by a combination of external readings and physical switches connected to digital inputs. Starting speed is set to 70% of maximum speed. The first change in speed is triggered when the robot detects that it is safe to move through the infrared gate. It slows down to 50% as it goes around the corner. When the robot reaches the bottom of the ramp the tilt switch will change from High to Low and speed is increased to 100%. When the tilt switch transitions back to High speed is slowed to 50% until the robot detects the cross at the ring junction where speed is lowered to 30%.
+            </p>
+
+
+
+            <h4 id="Arm">Arm Control</h4>
+            <p>
+                The arm is controlled by three servos, two DC motors, and two rotary potentiometers. There is one servo at the base of the arm to rotate the arm about the vertical axis. The other two servos are used at the end of the arm to control the tilt of the claw and to move the sweeping mechanism. Each hinge of the arm is controlled by a rotary potentiometer and DC motor pairing. Positions are stored as a set of two voltages, one for each hinge, and two servo values, one for the base and one for the tilt of the claw.
+            </p>
+
+            <table style="width:auto" border="1" >
+                <tr>
+                    <td colspan="4"><b>Example of an Arm Position</b></td>
+                </tr>
+                <tr>
+                    <td>Base Voltage</td>
+                    <td>Elbow Voltage</td>
+                    <td>Base Servo</td>
+                    <td>Tilt Servo</td>
+                </tr>
+                <tr>
+                    <td>4.30</td>
+                    <td>1.9</td>
+                    <td>90</td>
+                    <td>140</td>
+                </tr>
+            </table>
+
+            <p>
+                Each individual portion of the arm can be moved independently by passing voltage or servo values to the arm control functions, or a position defined as a global constant can be passed. If a position is passed to any function that moves the arm the function will look up the voltage and/or servo values that correspond to that position and move the arm to satisfy those values.
+
+                The arm control algorithm moves the arm by taking the difference between the current voltage value and the desired voltage value of the joint.  The difference is multiplied my a scaling factor and then passed to the motor as a speed. The value passed will always cause the motor to turn in the direction that will bring the voltage difference as close to 0 as possible. The motors lack the ability to bring the difference to exactly 0 so a small voltage error is set to stop the motors from stalling. If the function detects that the arm is no longer moving and it is within the error threshold it will cut power to the motor for that joint. 
+
+                It is important to note that since arm movement functions need to frequently update they must be called in a loop. If they are not called in a loop, a motor speed will be set but never terminated. This arm will drive itself into the chassis of the robot likely causing damage to the arm and motors.
+            </p>
+
+            <h4 id="Infrared"> Infrared Detection</h4>
+            <p>
+                The infrared detection algorithm checks if any of analog infrared readings are above a set threshold to determine if the infrared gate is armed.  Time averaging is used to reduce the effects of electrical noise in the readings.  Because of this time averaging, the infrared detection function must be called multiple times. Every call will collect and store the current readings. Every 20th call will take the average of the stored values and return true if the average is higher than the set threshold.
+            </p>
+
+            <h4 id="Menu"> Menu</h4>
+            <p>
+                The menu can be accessed at any time by pushing the stop button. Opening the menu will stop all motors to prevent any damage to the robot.  In the menu the user can use a knob to scroll through variables. Another knob is used to set values. Pushing the start button will save the new value until the TINAH controller is turned off. Pushing the stop button will exit the menu.
+            </p>
+
+            <h4 id="Modes"> Alternate Modes</h4>
+            <p>
+                If the TINAH has been freshly reset or turned on, holding the start button will allow the user to select a mode by turning a knob. Releasing the start button will begin the selected mode. Modes are listed below.
+            </p>
+
+            <table class="wide" border="0" >
+                <tr class="border">
+                    <td colspan="4"><b>Summary of Modes</b></td>
+                </tr>
+                <tr class="border">
+                    <td>Mode</td>
+                    <td colspan="3">Summary</td>
+                </tr>
+                <tr class="border">
+                    <td>PIDdebug</td>
+                    <td colspan="3">Test steering and speed control</td>
+                </tr>
+                <tr class="border">
+                    <td>armDebug</td>
+                    <td colspan="3">Used to scroll through all arm positions</td>
+                </tr>
+                <tr class="border">
+                    <td>irDebug</td>
+                    <td colspan="3">Displays readings of all IR sensors on screen</td>
+                </tr>
+                <tr class="border">
+                    <td>ringDebug</td>
+                    <td colspan="3">Runs the section of code that controls the robot while it is on the ring</td>
+                </tr>
+                <tr class="border">
+                    <td>motorDebug</td>
+                    <td colspan="3">Allows individual motor input through knobs to test H-bridge circuits</td>
+                </tr>
+                <tr class="border">
+                    <td>armCalibrate</td>
+                    <td colspan="3">Allows the user to move all sections of the arm with the TINAH knobs. Useful for determining the voltage values to set in the look up tables for arm positions</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td></tr>
+            </table>
+            <a href="#top"> Link to top</a>
+        </div>
+
+
+
+    </body>
+</html>
